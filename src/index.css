@@ -1,0 +1,276 @@
+/* ============================================================
+   SARVAM AI Playground — Global CSS
+   Design language: Full-black, minimal, enterprise-grade
+   Typography inspiration: official Sarvam dashboard
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   Design Tokens
+   ============================================================ */
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-primary:    #000000;
+    --bg-secondary:  #080808;
+    --bg-tertiary:   #101010;
+    --bg-card:       #0d0d0d;
+    --bg-hover:      #181818;
+    --bg-input:      #0a0a0a;
+
+    /* Borders — sharper and more visible */
+    --border:        rgba(255, 255, 255, 0.11);
+    --border-soft:   rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --border-active: rgba(255, 255, 255, 0.28);
+
+    /* Typography — BRIGHT. Pure and readable. */
+    --text-primary:   #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.82);
+    --text-muted:     rgba(255, 255, 255, 0.50);
+    --text-disabled:  rgba(255, 255, 255, 0.20);
+    --text-placeholder: rgba(255, 255, 255, 0.30);
+
+    /* Accent */
+    --accent:         #ffffff;
+    --accent-muted:   rgba(255, 255, 255, 0.10);
+    --accent-focus:   rgba(255, 255, 255, 0.18);
+
+    /* Semantic */
+    --success:        #4ade80;
+    --success-bg:     rgba(74, 222, 128, 0.08);
+    --success-border: rgba(74, 222, 128, 0.20);
+    --error:          #f87171;
+    --error-bg:       rgba(248, 113, 113, 0.08);
+    --error-border:   rgba(248, 113, 113, 0.20);
+    --warning:        #fbbf24;
+    --warning-bg:     rgba(251, 191, 36, 0.08);
+
+    /* Diff tokens */
+    --token-added:    rgba(74, 222, 128, 0.13);
+    --token-added-fg: #86efac;
+    --token-removed:  rgba(248, 113, 113, 0.13);
+    --token-removed-fg: #fca5a5;
+  }
+}
+
+/* ============================================================
+   Base reset + body
+   ============================================================ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    /* Inter — matching Sarvam dashboard clean style */
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'cv02';
+    font-variation-settings: 'opsz' 24;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #252525; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #353535; }
+
+  :focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+@layer utilities {
+
+  .glass {
+    background: rgba(5, 5, 5, 0.94);
+    backdrop-filter: blur(28px) saturate(1.1);
+    -webkit-backdrop-filter: blur(28px) saturate(1.1);
+  }
+
+  .glass-strong {
+    background: rgba(0, 0, 0, 0.97);
+    backdrop-filter: blur(48px);
+    -webkit-backdrop-filter: blur(48px);
+  }
+
+  /* Cursor blink — slim white bar */
+  .cursor-blink {
+    display: inline-block;
+    width: 1.5px;
+    height: 0.9em;
+    background: rgba(255, 255, 255, 0.88);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    border-radius: 1px;
+    animation: blink 1.05s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.88; }
+    50%       { opacity: 0; }
+  }
+
+  /* Shimmer skeleton */
+  .shimmer {
+    background: linear-gradient(90deg, #111 0%, #1c1c1c 50%, #111 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Diff token highlights */
+  .token-added {
+    background-color: var(--token-added);
+    color: var(--token-added-fg);
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  .token-removed {
+    background-color: var(--token-removed);
+    color: var(--token-removed-fg);
+    border-radius: 2px;
+    padding: 0 2px;
+    text-decoration: line-through;
+    text-decoration-color: rgba(248, 113, 113, 0.42);
+  }
+
+  .token-unchanged {
+    color: var(--text-primary);
+  }
+
+  /* Live pulse */
+  .pulse-live {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    animation: pulse-live 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% { opacity: 1;   transform: scale(1); }
+    50%       { opacity: 0.3; transform: scale(0.7); }
+  }
+
+  /* Fade-in-up */
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Response panel entrance */
+  @keyframes response-appear {
+    from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0px); }
+  }
+  .animate-response-appear {
+    animation: response-appear 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Monospace */
+  .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  /* Metric strip (legacy compat) */
+  .metric-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  /* Enterprise card — top shimmer line */
+  .card-enterprise {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+    overflow: hidden;
+  }
+
+  .card-enterprise::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+    pointer-events: none;
+  }
+
+  /* Noise overlay */
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.018;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Voice / mic animations ── */
+  @keyframes mic-ring {
+    0%   { transform: scale(1);   opacity: 0.55; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .mic-ring {
+    animation: mic-ring 1.6s ease-out infinite;
+  }
+  .mic-ring-delay {
+    animation: mic-ring 1.6s ease-out infinite 0.55s;
+  }
+
+  @keyframes voice-bar {
+    0%, 100% { transform: scaleY(0.3); }
+    50%       { transform: scaleY(1); }
+  }
+  /* Individual bar delays applied via inline style */
+  .voice-bar {
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(239, 68, 68, 0.6);
+    transform-origin: bottom;
+    animation: voice-bar 0.7s ease-in-out infinite;
+  }
+}
