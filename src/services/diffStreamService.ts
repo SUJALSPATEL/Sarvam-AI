@@ -62,6 +62,7 @@ export async function streamModelResponse(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
       'api-subscription-key': SARVAM_API_KEY || '',
     },
     body: JSON.stringify({
@@ -108,7 +109,27 @@ export async function streamModelResponse(
           return;
         }
 
-        buffer += decoder.decode(value, { stream: true });
+        const decoded = decoder.decode(value, { stream: true });
+        console.log(`[DEBUG raw chunk from ${modelId}]:`, decoded);
+        buffer += decoded;
+
+        // Failsafe: if the response is actually an HTML page (Vercel rewrite failed)
+        if (buffer.trim().startsWith('<!DOCTYPE') || buffer.trim().startsWith('<html')) {
+          controller.error(new Error('Received HTML instead of stream. Vercel API rewrite failed.'));
+          return;
+        }
+        
+        // Failsafe: if the response is a raw JSON error instead of SSE
+        if (buffer.trim().startsWith('{') && buffer.includes('"error"')) {
+          try {
+            const errJson = JSON.parse(buffer);
+            if (errJson.error) {
+              controller.error(new Error(errJson.error.message || 'API Error in JSON response'));
+              return;
+            }
+          } catch { /* ignore partial JSON */ }
+        }
+
         const lines = buffer.split('\n');
         buffer = lines.pop() ?? '';
 

@@ -56,7 +56,8 @@ export async function fetchSarvamStream(
   const res = await fetch(SARVAM_API_URL, {
     method:  'POST',
     headers: {
-      'Content-Type':  'application/json',
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
       'api-subscription-key': SARVAM_API_KEY || '',
     },
     body: JSON.stringify({
@@ -107,7 +108,25 @@ export async function fetchSarvamStream(
           return;
         }
 
-        buffer += decoder.decode(value, { stream: true });
+        const decoded = decoder.decode(value, { stream: true });
+        buffer += decoded;
+
+        // Failsafe: if Vercel rewrite fails and serves HTML
+        if (buffer.trim().startsWith('<!DOCTYPE') || buffer.trim().startsWith('<html')) {
+          controller.error(new Error('Received HTML instead of stream. Vercel API rewrite failed.'));
+          return;
+        }
+
+        // Failsafe: if the response is a raw JSON error
+        if (buffer.trim().startsWith('{') && buffer.includes('"error"')) {
+          try {
+            const errJson = JSON.parse(buffer);
+            if (errJson.error) {
+              controller.error(new Error(errJson.error.message || 'API Error in JSON response'));
+              return;
+            }
+          } catch { /* ignore partial JSON */ }
+        }
 
         // Split on newlines; keep the last incomplete line in buffer
         const lines = buffer.split('\n');
