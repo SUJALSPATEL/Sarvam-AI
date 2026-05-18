@@ -9,9 +9,7 @@
 //   VITE_SARVAM_MODEL    — model ID (default: Sarvam-2B-Instruct)
 // ============================================================
 
-const SARVAM_API_URL = import.meta.env.DEV 
-  ? '/api/sarvam/chat/completions' 
-  : 'https://api.sarvam.ai/v1/chat/completions';
+const SARVAM_API_URL = '/api/sarvam/chat/completions';
 const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY as string | undefined;
 const SARVAM_MODEL   = (import.meta.env.VITE_SARVAM_MODEL as string | undefined)
   ?? 'sarvam-30b';

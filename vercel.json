@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/sarvam/:path*",
+      "destination": "https://api.sarvam.ai/v1/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
