@@ -7,8 +7,8 @@
 // ============================================================
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { fetchSarvamStream, fetchGroqStream } from '../services/streamService';
-import type { SarvamMessage, GroqMessage } from '../services/streamService';
+import { fetchSarvamStream } from '../services/streamService';
+import type { SarvamMessage } from '../services/streamService';
 import type { StreamStatus } from '../types';
 
 interface UseStreamingResponseReturn {
@@ -34,7 +34,7 @@ export function useStreamingResponse(): UseStreamingResponseReturn {
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastMessagesRef    = useRef<SarvamMessage[]>([]);
   const networkListenerRef = useRef<(() => void) | null>(null);
-  const timeoutRef         = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef         = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearInactivityTimeout = useCallback(() => {
     if (timeoutRef.current) {

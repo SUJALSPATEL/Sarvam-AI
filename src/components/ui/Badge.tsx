@@ -42,6 +42,11 @@ const statusConfig: Record<StreamStatus, { label: string; dotClass: string; wrap
     dotClass: 'bg-yellow-400',
     wrapClass: 'bg-yellow-950/30 text-yellow-400/80 border-yellow-900/40',
   },
+  timeout: {
+    label: 'Timeout',
+    dotClass: 'bg-red-400 animate-pulse',
+    wrapClass: 'bg-red-950/30 text-red-400/80 border-red-900/40',
+  },
 };
 
 export const Badge: React.FC<BadgeProps> = ({ status, className }) => {

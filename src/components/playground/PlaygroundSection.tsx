@@ -64,7 +64,7 @@ export const PlaygroundSection: React.FC<PlaygroundSectionProps> = ({
     if (mode === 'text') setPrompt('');
 
     try {
-      await startStream(inputText);
+      await startStream([{ role: "user", content: inputText }]);
       if (status === 'complete') onComplete();
     } catch {
       onError('Generation failed. Please try again.');

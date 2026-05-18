@@ -6,7 +6,7 @@
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Mic, MicOff, Square, X, FileAudio, AlertCircle } from 'lucide-react';
+import { Upload, Mic, Square, X, FileAudio, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatFileSize } from '../../utils/formatters';
 import type { AudioFile } from '../../types';

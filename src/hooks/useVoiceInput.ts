@@ -38,13 +38,10 @@ interface UseVoiceInputReturn {
   stopListening: () => void;
 }
 
-// Detect support once at module level
-const SpeechRecognitionClass: typeof SpeechRecognition | null =
-  (typeof window !== 'undefined'
-    ? (window as unknown as Record<string, unknown>).SpeechRecognition ??
-      (window as unknown as Record<string, unknown>).webkitSpeechRecognition ??
-      null
-    : null) as typeof SpeechRecognition | null;
+const SpeechRecognitionClass: any =
+  typeof window !== 'undefined'
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    : null;
 
 export function useVoiceInput({
   onLiveTranscript,
@@ -56,7 +53,7 @@ export function useVoiceInput({
   );
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const finalTextRef   = useRef('');
   const timerRef       = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -99,7 +96,7 @@ export function useVoiceInput({
       timerRef.current = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
     };
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const t = event.results[i][0].transcript;
@@ -130,7 +127,7 @@ export function useVoiceInput({
       }
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: any) => {
       clearTimer();
       if (event.error === 'aborted' || event.error === 'no-speech') {
         setVoiceState('idle');

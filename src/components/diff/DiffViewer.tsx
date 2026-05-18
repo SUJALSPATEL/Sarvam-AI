@@ -99,7 +99,7 @@ export const DiffViewer: React.FC = () => {
     const reader = stream.getReader();
     let accumulated = '';
     let chunkCount = 0;
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const resetInactivityTimeout = () => {
       if (timeoutId) clearTimeout(timeoutId);
