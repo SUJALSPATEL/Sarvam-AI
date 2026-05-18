@@ -5,7 +5,9 @@
 // Returns per-model ReadableStream<string> with latency tracking.
 // ============================================================
 
-const SARVAM_API_URL = '/api/sarvam/chat/completions';
+const SARVAM_API_URL = import.meta.env.DEV 
+  ? '/api/sarvam/chat/completions' 
+  : 'https://api.sarvam.ai/v1/chat/completions';
 const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY as string | undefined;
 
 // Hardcoded models used in DiffViewer
@@ -31,7 +33,8 @@ function processSSELine(
     const json = JSON.parse(data);
     const delta = json?.choices?.[0]?.delta?.content;
     if (delta) controller.enqueue(delta);
-  } catch {
+  } catch (err) {
+    console.error(`[DEBUG] Failed to parse JSON chunk:`, data, err);
     // skip malformed chunks
   }
 }
@@ -52,6 +55,10 @@ export async function streamModelResponse(
   }
 
   const startTime = performance.now();
+
+  console.log(`[DEBUG] Starting diff stream request for model: ${modelId}...`);
+  console.log(`[DEBUG] Target URL:`, SARVAM_API_URL);
+  console.log(`[DEBUG] Has API Key:`, !!SARVAM_API_KEY);
 
   const res = await fetch(SARVAM_API_URL, {
     method: 'POST',
@@ -85,6 +92,8 @@ export async function streamModelResponse(
 
   if (!res.body) throw new Error(`No response body from ${modelId}`);
 
+  console.log(`[DEBUG] Received valid response for ${modelId}, status:`, res.status);
+
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -96,6 +105,7 @@ export async function streamModelResponse(
         const { done, value } = await reader.read();
         if (done) {
           if (buffer.trim()) processSSELine(buffer, controller);
+          console.log(`[DEBUG] Stream reading complete for ${modelId}.`);
           controller.close();
           return;
         }

@@ -9,7 +9,9 @@
 //   VITE_SARVAM_MODEL    — model ID (default: Sarvam-2B-Instruct)
 // ============================================================
 
-const SARVAM_API_URL = '/api/sarvam/chat/completions';
+const SARVAM_API_URL = import.meta.env.DEV 
+  ? '/api/sarvam/chat/completions' 
+  : 'https://api.sarvam.ai/v1/chat/completions';
 const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY as string | undefined;
 const SARVAM_MODEL   = (import.meta.env.VITE_SARVAM_MODEL as string | undefined)
   ?? 'sarvam-30b';
@@ -48,6 +50,11 @@ export async function fetchSarvamStream(
     );
   }
 
+  console.log('[DEBUG] Starting stream request...');
+  console.log('[DEBUG] Target URL:', SARVAM_API_URL);
+  console.log('[DEBUG] Model:', SARVAM_MODEL);
+  console.log('[DEBUG] Has API Key:', !!SARVAM_API_KEY);
+
   const res = await fetch(SARVAM_API_URL, {
     method:  'POST',
     headers: {
@@ -78,6 +85,8 @@ export async function fetchSarvamStream(
 
   if (!res.body) throw new Error('Sarvam AI API returned no response body');
 
+  console.log('[DEBUG] Received valid response, status:', res.status);
+
   // ── SSE parser ───────────────────────────────────────────
   // Sarvam AI streams in the OpenAI SSE format:
   //   data: {"choices":[{"delta":{"content":"Hello"}}]}\n\n
@@ -95,6 +104,7 @@ export async function fetchSarvamStream(
         if (done) {
           // Flush any remaining buffer
           if (buffer.trim()) processChunk(buffer, controller);
+          console.log('[DEBUG] Stream reading complete.');
           controller.close();
           return;
         }
@@ -132,7 +142,8 @@ function processChunk(
     const json  = JSON.parse(data);
     const delta = json?.choices?.[0]?.delta?.content;
     if (delta) controller.enqueue(delta);
-  } catch {
+  } catch (err) {
+    console.error('[DEBUG] Failed to parse JSON chunk:', data, err);
     // Malformed / empty chunk — skip silently
   }
 }
