@@ -1,6 +1,9 @@
 <div align="center">
   <img src="./public/screenshot1.png" alt="Sarvam AI Playground Preview" width="800" />
+  <p><em>Playground Tab</em></p>
+  <br/>
   <img src="./public/screenshot2.png" alt="Sarvam AI Diff Viewer" width="800" />
+  <p><em>Diff Viewer Tab</em></p>
 </div>
 
 <div align="center">
@@ -8,15 +11,9 @@
   <p><em>A real-time conversational AI playground with streaming inference, voice interaction, and a custom token-level response diff engine optimized for LLM outputs.</em></p>
   
   <p>
-    <a href="https://sarvam-ai-sp.vercel.app"><b>Deploy to Vercel (Example)</b></a>
+    <a href="https://sarvam-ai-sp.vercel.app"><b>Deployed Website Link</b></a>
   </p>
 
-  <p>
-    <img src="https://img.shields.io/badge/React-18.0-blue.svg?style=flat-square&logo=react" alt="React" />
-    <img src="https://img.shields.io/badge/TypeScript-5.0-blue.svg?style=flat-square&logo=typescript" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/Vite-5.0-purple.svg?style=flat-square&logo=vite" alt="Vite" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg?style=flat-square&logo=tailwind-css" alt="Tailwind" />
-  </p>
 </div>
 
 ---
@@ -49,9 +46,9 @@ This project explores a modern, AI-native approach to response comparison. Rathe
 * **Chat History Persistence:** LocalStorage-backed conversational state management for session continuity.
 * **Enterprise Dark UI:** A polished, high-contrast, professional-grade aesthetic.
 
-## 5. Custom Diff Algorithm: Progressive Token Alignment
+## 5. Custom Diff Algorithm: Hybrid Semantic Token Diff Level Algorithm
 
-This project completely abandons standard diffing algorithms in favor of a custom engine: **Progressive Token Alignment Diff**.
+This project completely abandons standard diffing algorithms in favor of a custom engine: **Hybrid Semantic Token Diff Level Algorithm**.
 
 **This is NOT LCS (Longest Common Subsequence).**
 **This is NOT Myers Diff.**
@@ -77,7 +74,7 @@ Streaming API Layer (SSE)
       ↓
 Response Stream Manager (AbortController & Chunk Assembly)
       ↓
-Progressive Token Alignment Diff Engine
+Hybrid Semantic Token Diff Engine
       ↓
 Analytics Engine & UI Visualization
 ```
@@ -109,7 +106,7 @@ Enterprise tooling must be usable by all engineers. The playground strictly adhe
 * **Data Flow:** Server-Sent Events (SSE), Web APIs (AbortController)
 * **Storage:** LocalStorage (Session Hydration)
 * **AI Integration:** Sarvam AI APIs
-* **Algorithms:** Custom Progressive Token Alignment Engine
+* **Algorithms:** Custom Hybrid Semantic Token Diff Engine
 
 ## 10. Screenshots / Preview
 
