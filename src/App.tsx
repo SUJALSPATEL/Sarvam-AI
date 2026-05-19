@@ -24,6 +24,56 @@ const TAB_CONFIG: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'diff',       label: 'Diff Viewer', icon: GitCompare },
 ];
 
+const AnimatedEarth: React.FC = () => {
+  const isHoveredRef = React.useRef(false);
+  const rotationRef = React.useRef(0);
+  const containerRef = React.useRef<HTMLImageElement>(null);
+
+  React.useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    
+    const animate = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+      
+      // on hover, rotate faster (1.3x speed as requested)
+      const baseSpeed = 0.01; // slightly faster base speed so the 1.3x is noticeable
+      const speed = isHoveredRef.current ? baseSpeed * 1.3 : baseSpeed; // degrees per ms
+      rotationRef.current = (rotationRef.current + speed * delta) % 360;
+      
+      if (containerRef.current) {
+        containerRef.current.style.transform = `rotate(${rotationRef.current}deg)`;
+        containerRef.current.style.opacity = isHoveredRef.current ? "1" : "0.6";
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  return (
+    <div 
+      className="fixed bottom-0 left-0 z-10 pointer-events-auto cursor-pointer"
+      style={{ transform: 'translate(-50%, 50%)' }}
+      onMouseEnter={() => { isHoveredRef.current = true; }}
+      onMouseLeave={() => { isHoveredRef.current = false; }}
+    >
+      <img
+        ref={containerRef}
+        src="/earth.jpg"
+        alt="Rotating Earth"
+        className="rounded-full transition-opacity duration-700 object-cover"
+        style={{ 
+          width: '400px', 
+          height: '400px',
+        }}
+      />
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useLocalStorage<Tab>('app:activeTab', 'playground');
   const { toasts, addToast, removeToast } = useToast();
@@ -250,6 +300,9 @@ const App: React.FC = () => {
 
       {/* ── Main content ────────────────────────────────────── */}
       <main className="flex-1 w-full relative grid" style={{ gridTemplateColumns: '1fr', gridTemplateRows: '1fr' }}>
+
+        {/* Animated Quartered Earth */}
+        {activeTab === 'playground' && !sidebarOpen && !chatActive && <AnimatedEarth />}
 
         {/* Playground — always mounted, crossfade */}
         <div
