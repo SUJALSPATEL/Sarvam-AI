@@ -23,7 +23,7 @@ export interface StreamState {
 
 export interface DiffToken {
   token: string;
-  type: 'added' | 'removed' | 'unchanged';
+  type: 'added' | 'removed' | 'unchanged' | 'modified';
 }
 
 export interface DiffResult {

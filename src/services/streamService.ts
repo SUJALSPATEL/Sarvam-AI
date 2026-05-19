@@ -157,8 +157,11 @@ function processChunk(
 
   try {
     const json  = JSON.parse(data);
-    const delta = json?.choices?.[0]?.delta?.content;
-    if (delta) controller.enqueue(delta);
+    const deltaObj = json?.choices?.[0]?.delta;
+    if (deltaObj) {
+      const text = deltaObj.content || deltaObj.reasoning_content;
+      if (text) controller.enqueue(text);
+    }
   } catch (err) {
     console.error('[DEBUG] Failed to parse JSON chunk:', data, err);
     // Malformed / empty chunk — skip silently

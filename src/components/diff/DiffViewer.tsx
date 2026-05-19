@@ -80,10 +80,30 @@ export const DiffViewer: React.FC = () => {
     return () => window.removeEventListener('offline', handleNetworkChange);
   }, [isRunning]);
 
-  // ── Diff: run once both are done ────────────────────────────
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Global key capture
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const runDiff = useCallback((textA: string, textB: string) => {
-    if (!textA || !textB) return;
-    const result = computeTokenDiff(textA, textB);
+    // Strip markdown bold stars as per user request to clean up diff output
+    const cleanA = textA.replace(/\*\*/g, '');
+    const cleanB = textB.replace(/\*\*/g, '');
+    
+    if (!cleanA || !cleanB) return;
+    const result = computeTokenDiff(cleanA, cleanB);
     setModelA(s => ({ ...s, tokens: result.tokensA }));
     setModelB(s => ({ ...s, tokens: result.tokensB }));
   }, []);
@@ -241,13 +261,12 @@ export const DiffViewer: React.FC = () => {
   }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      if (e.ctrlKey || e.metaKey || e.shiftKey) {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          setPrompt(p => p + '\n');
-        }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.ctrlKey || e.metaKey) {
+        // Ctrl+Enter / Cmd+Enter => newline
+        setPrompt(p => p + '\n');
       } else {
+        // Enter only => send
         e.preventDefault();
         handleRun();
       }
@@ -273,7 +292,7 @@ export const DiffViewer: React.FC = () => {
             AI Model Comparison
           </h2>
           <p className="text-[11px] text-white/35 mt-0.5 font-mono">
-            Dual-stream generation · Token-level LCS diff · Live analytics
+            Dual-stream generation · Hybrid Semantic Token Diff Level Algo · Live analytics
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -305,6 +324,7 @@ export const DiffViewer: React.FC = () => {
               {[
                 { cls: 'token-added',   label: 'Present only in Model B' },
                 { cls: 'token-removed', label: 'Present only in Model A' },
+                { cls: 'token-modified', label: 'Modified tokens' },
                 { cls: 'token-unchanged text-white/60', label: 'Identical tokens' },
               ].map(({ cls, label }) => (
                 <div key={label} className="flex items-center gap-2">
@@ -326,6 +346,8 @@ export const DiffViewer: React.FC = () => {
         </label>
         <div className="relative">
           <textarea
+            ref={textareaRef}
+            autoFocus
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -393,10 +415,10 @@ export const DiffViewer: React.FC = () => {
               <Metric label="Added Tokens" value={`+${diffStats.addedCount}`} accent="text-emerald-400/65" mono />
               <Metric label="Removed Tokens" value={`−${diffStats.removedCount}`} accent="text-red-400/65" mono />
               <Metric label="Unchanged" value={diffStats.unchangedCount} accent="text-white/45" mono />
-              <Metric label="A Latency" value={modelA.latencyMs !== null ? (modelA.latencyMs < 1000 ? `${modelA.latencyMs}ms` : `${(modelA.latencyMs/1000).toFixed(1)}s`) : '—'} mono />
-              <Metric label="B Latency" value={modelB.latencyMs !== null ? (modelB.latencyMs < 1000 ? `${modelB.latencyMs}ms` : `${(modelB.latencyMs/1000).toFixed(1)}s`) : '—'} mono />
-              <Metric label="A Tok/s" value={modelA.tokensPerSec !== null ? `${modelA.tokensPerSec}` : '—'} mono />
-              <Metric label="B Tok/s" value={modelB.tokensPerSec !== null ? `${modelB.tokensPerSec}` : '—'} mono />
+              <Metric label="30B Latency" value={modelA.latencyMs !== null ? (modelA.latencyMs < 1000 ? `${modelA.latencyMs}ms` : `${(modelA.latencyMs/1000).toFixed(1)}s`) : '—'} mono />
+              <Metric label="105B Latency" value={modelB.latencyMs !== null ? (modelB.latencyMs < 1000 ? `${modelB.latencyMs}ms` : `${(modelB.latencyMs/1000).toFixed(1)}s`) : '—'} mono />
+              <Metric label="30B Tok/s" value={modelA.tokensPerSec !== null ? `${modelA.tokensPerSec}` : '—'} mono />
+              <Metric label="105B Tok/s" value={modelB.tokensPerSec !== null ? `${modelB.tokensPerSec}` : '—'} mono />
             </div>
           </motion.div>
         )}

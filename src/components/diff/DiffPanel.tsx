@@ -8,8 +8,39 @@ import { clsx } from 'clsx';
 import { AlertTriangle } from 'lucide-react';
 import { TokenSpan } from './TokenSpan';
 import type { DiffToken } from '../../types';
+import { copyToClipboard } from '../../utils/clipboard';
+import { Copy, Check } from 'lucide-react';
 
 export type PanelStatus = 'idle' | 'loading' | 'streaming' | 'done' | 'error' | 'network_lost' | 'timeout';
+
+type CodeBlock = { type: 'code'; language: string; tokens: DiffToken[] };
+type TextBlock = { type: 'text'; tokens: DiffToken[] };
+type Block = CodeBlock | TextBlock;
+
+const CodeBlockCopyButton = ({ tokens }: { tokens: DiffToken[] }) => {
+  const [copied, setCopied] = React.useState(false);
+  
+  const handleCopy = async () => {
+    const textToCopy = tokens.map(t => t.token).join('');
+    const ok = await copyToClipboard(textToCopy);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 text-[10px] font-mono transition-colors hover:text-white"
+      style={{ color: copied ? '#4ade80' : 'rgba(255,255,255,0.4)' }}
+      aria-label="Copy code"
+    >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+};
 
 interface DiffPanelProps {
   label: string;
@@ -201,7 +232,58 @@ export const DiffPanel: React.FC<DiffPanelProps> = ({
         )}
 
         {/* Diff tokens */}
-        {showDiff && tokens!.map((token, i) => <TokenSpan key={i} token={token} />)}
+        {showDiff && tokens && (
+          <div>
+            {(() => {
+              const blocks: Block[] = [];
+              let currentBlock: Block = { type: 'text', tokens: [] };
+              let insideCode = false;
+
+              for (const t of tokens) {
+                // Check if token contains ``` (it might have spaces or newlines attached, but usually it's just the backticks or backticks+language)
+                if (!insideCode && t.token.includes('```')) {
+                  if (currentBlock.tokens.length > 0) blocks.push(currentBlock);
+                  const langMatch = t.token.match(/```([a-zA-Z0-9_-]*)/);
+                  const lang = langMatch ? langMatch[1] : '';
+                  currentBlock = { type: 'code', language: lang, tokens: [] };
+                  insideCode = true;
+                  // We don't push the ``` token itself to avoid rendering it inside the code block
+                } else if (insideCode && t.token.includes('```')) {
+                  if (currentBlock.tokens.length > 0) blocks.push(currentBlock);
+                  currentBlock = { type: 'text', tokens: [] };
+                  insideCode = false;
+                } else {
+                  currentBlock.tokens.push(t);
+                }
+              }
+              if (currentBlock.tokens.length > 0) blocks.push(currentBlock);
+
+              return blocks.map((block, i) => {
+                if (block.type === 'code') {
+                  return (
+                    <div key={i} className="my-3 rounded-lg overflow-hidden border border-white/10 bg-[#161616]">
+                      <div className="flex items-center justify-between px-3 py-1.5 bg-[#0e0e0e] border-b border-white/5">
+                        <span className="text-[10px] font-mono text-white/40">{block.language || 'code'}</span>
+                        <CodeBlockCopyButton tokens={block.tokens} />
+                      </div>
+                      <div className="p-3 overflow-x-auto">
+                        <code className="text-[13px] leading-relaxed font-mono text-white/80 whitespace-pre">
+                          {block.tokens.map((t, j) => <TokenSpan key={j} token={t} />)}
+                        </code>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <span key={i}>
+                      {block.tokens.map((t, j) => <TokenSpan key={j} token={t} />)}
+                    </span>
+                  );
+                }
+              });
+            })()}
+          </div>
+        )}
 
         {/* Error */}
         {showError && !streamText && (

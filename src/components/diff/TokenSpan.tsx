@@ -23,7 +23,8 @@ export const TokenSpan: React.FC<TokenSpanProps> = ({ token }) => {
           'transition-colors duration-200',
           token.type === 'added'     && 'token-added',
           token.type === 'removed'   && 'token-removed',
-          token.type === 'unchanged' && 'token-unchanged'
+          token.type === 'unchanged' && 'token-unchanged',
+          token.type === 'modified'  && 'token-modified'
         )}
         aria-label={
           token.type !== 'unchanged'

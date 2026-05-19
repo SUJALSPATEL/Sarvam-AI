@@ -262,8 +262,9 @@ const App: React.FC = () => {
             zIndex: activeTab === 'playground' ? 10 : 1,
             pointerEvents: activeTab === 'playground' ? 'auto' : 'none',
             opacity: activeTab === 'playground' ? 1 : 0,
-            transform: activeTab === 'playground' ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: activeTab === 'playground' ? 'translateX(0) scale(1)' : 'translateX(-30px) scale(0.98)',
+            filter: activeTab === 'playground' ? 'blur(0px)' : 'blur(4px)',
+            transition: 'all 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
           }}
         >
           {/*
@@ -294,8 +295,9 @@ const App: React.FC = () => {
             zIndex: activeTab === 'diff' ? 10 : 1,
             pointerEvents: activeTab === 'diff' ? 'auto' : 'none',
             opacity: activeTab === 'diff' ? 1 : 0,
-            transform: activeTab === 'diff' ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: activeTab === 'diff' ? 'translateX(0) scale(1)' : 'translateX(30px) scale(0.98)',
+            filter: activeTab === 'diff' ? 'blur(0px)' : 'blur(4px)',
+            transition: 'all 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
           }}
         >
           <DiffViewer />
