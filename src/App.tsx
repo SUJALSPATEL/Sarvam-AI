@@ -246,14 +246,22 @@ const App: React.FC = () => {
       {activeTab === 'playground' && !chatActive && <TaglineHero />}
 
       {/* ── Main content ────────────────────────────────────── */}
-      <main className={chatActive && activeTab === 'playground' ? 'flex-1' : 'flex-1 w-full px-5 sm:px-8 py-6'}>
+      <main className="flex-1 w-full relative grid" style={{ gridTemplateColumns: '1fr', gridTemplateRows: '1fr' }}>
 
-        {/* Playground — always mounted, CSS-toggled */}
+        {/* Playground — always mounted, crossfade */}
         <div
           id="panel-playground"
           role="tabpanel"
           aria-labelledby="tab-playground"
-          style={{ display: activeTab === 'playground' ? 'block' : 'none' }}
+          className={chatActive ? 'w-full h-full' : 'w-full h-full px-5 sm:px-8 py-6'}
+          style={{
+            gridArea: '1 / 1 / 2 / 2',
+            zIndex: activeTab === 'playground' ? 10 : 1,
+            pointerEvents: activeTab === 'playground' ? 'auto' : 'none',
+            opacity: activeTab === 'playground' ? 1 : 0,
+            transform: activeTab === 'playground' ? 'translateY(0)' : 'translateY(12px)',
+            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
         >
           {/*
             key={activeId ?? 'new'} — React remounts ChatSection when switching
@@ -270,12 +278,20 @@ const App: React.FC = () => {
           />
         </div>
 
-        {/* Diff Viewer — always mounted, CSS-toggled */}
+        {/* Diff Viewer — always mounted, crossfade */}
         <div
           id="panel-diff"
           role="tabpanel"
           aria-labelledby="tab-diff"
-          style={{ display: activeTab === 'diff' ? 'block' : 'none' }}
+          className="w-full h-full px-5 sm:px-8 py-6"
+          style={{
+            gridArea: '1 / 1 / 2 / 2',
+            zIndex: activeTab === 'diff' ? 10 : 1,
+            pointerEvents: activeTab === 'diff' ? 'auto' : 'none',
+            opacity: activeTab === 'diff' ? 1 : 0,
+            transform: activeTab === 'diff' ? 'translateY(0)' : 'translateY(12px)',
+            transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
         >
           <DiffViewer />
         </div>

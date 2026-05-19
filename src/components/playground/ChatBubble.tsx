@@ -27,19 +27,91 @@ const formatTime = (ts: number): string => {
   return `${hour}:${m} ${ampm}`;
 };
 
-// Extremely lightweight formatter to safely handle `**bold**` markdown
+const CodeBlockCopyButton = ({ textToCopy }: { textToCopy: string }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(textToCopy);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 text-[10px] font-mono transition-colors hover:text-white"
+      style={{ color: copied ? '#4ade80' : 'rgba(255,255,255,0.4)' }}
+      aria-label="Copy code"
+    >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+};
+
+// Extremely lightweight formatter to safely handle `**bold**`, inline `code`, and ```code blocks```
 const renderFormattedText = (text: string, isStreamingActive: boolean) => {
-  // Split by bold tokens
-  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g);
+  // 1. Split by code blocks first
+  const blocks = text.split(/(\`\`\`[\s\S]*?\`\`\`)/g);
   
   return (
     <>
-      {parts.map((part, i) => {
-        // Render bold text
-        if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-          return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+      {blocks.map((block, i) => {
+        // Is this a code block?
+        if (block.startsWith('```') && block.endsWith('```') && block.length >= 6) {
+          const content = block.slice(3, -3);
+          const firstNewlineIndex = content.indexOf('\n');
+          let language = '';
+          let code = content;
+          
+          if (firstNewlineIndex !== -1 && firstNewlineIndex < 20) {
+            language = content.substring(0, firstNewlineIndex).trim();
+            code = content.substring(firstNewlineIndex + 1);
+          } else {
+            code = content.trim();
+          }
+
+          return (
+            <div key={i} className="my-3 rounded-lg overflow-hidden border border-white/10 bg-[#161616]">
+              <div className="flex items-center justify-between px-3 py-1.5 bg-[#0e0e0e] border-b border-white/5">
+                <span className="text-[10px] font-mono text-white/40">{language || 'code'}</span>
+                <CodeBlockCopyButton textToCopy={code} />
+              </div>
+              <div className="p-3 overflow-x-auto">
+                <code className="text-[13px] leading-relaxed font-mono text-white/80 whitespace-pre">
+                  {code}
+                </code>
+              </div>
+            </div>
+          );
         }
-        return <React.Fragment key={i}>{part}</React.Fragment>;
+
+        // 2. Otherwise, it's normal text, apply bold parsing
+        const boldParts = block.split(/(\*\*[\s\S]*?\*\*)/g);
+        return (
+          <React.Fragment key={i}>
+            {boldParts.map((part, j) => {
+              if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+                return <strong key={j} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+              }
+              
+              // 3. Apply inline code parsing
+              const inlineParts = part.split(/(\`[^\`]+\`)/g);
+              return inlineParts.map((inlinePart, k) => {
+                if (inlinePart.startsWith('`') && inlinePart.endsWith('`') && inlinePart.length >= 2) {
+                  return (
+                    <code key={k} className="bg-white/10 px-1.5 py-0.5 rounded font-mono text-[12.5px] text-white/90">
+                      {inlinePart.slice(1, -1)}
+                    </code>
+                  );
+                }
+                return <React.Fragment key={k}>{inlinePart}</React.Fragment>;
+              });
+            })}
+          </React.Fragment>
+        );
       })}
       
       {/* Blinking cursor during streaming */}
