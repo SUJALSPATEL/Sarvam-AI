@@ -13,7 +13,7 @@ import { ToastContainer } from './components/ui/Toast';
 import { TaglineHero } from './components/ui/TaglineHero';
 import { ChatSidebar, SIDEBAR_WIDTH } from './components/sidebar/ChatSidebar';
 import { useToast } from './hooks/useToast';
-import { useLocalStorage } from './hooks/useLocalStorage';
+// useLocalStorage removed
 import { useConversations } from './hooks/useConversations';
 import type { ChatMessage } from './types';
 
@@ -75,7 +75,7 @@ const AnimatedEarth: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useLocalStorage<Tab>('app:activeTab', 'playground');
+  const [activeTab, setActiveTab] = useState<Tab>('playground');
   const { toasts, addToast, removeToast } = useToast();
 
   // ── Sidebar ────────────────────────────────────────────────
