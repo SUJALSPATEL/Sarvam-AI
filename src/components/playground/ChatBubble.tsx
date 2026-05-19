@@ -3,9 +3,9 @@
 // User + assistant message rendering with timestamps
 // ============================================================
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Copy, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Copy, AlertTriangle, Check } from 'lucide-react';
 import { clsx } from 'clsx';
 import { copyToClipboard } from '../../utils/clipboard';
 import type { ChatMessage } from '../../types';
@@ -27,6 +27,36 @@ const formatTime = (ts: number): string => {
   return `${hour}:${m} ${ampm}`;
 };
 
+// Extremely lightweight formatter to safely handle `**bold**` markdown
+const renderFormattedText = (text: string, isStreamingActive: boolean) => {
+  // Split by bold tokens
+  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g);
+  
+  return (
+    <>
+      {parts.map((part, i) => {
+        // Render bold text
+        if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+          return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+        }
+        return <React.Fragment key={i}>{part}</React.Fragment>;
+      })}
+      
+      {/* Blinking cursor during streaming */}
+      {isStreamingActive && (
+        <span
+          className="inline-block w-[2px] h-[1em] ml-[2px] align-middle rounded-sm"
+          style={{
+            background: 'rgba(255,255,255,0.65)',
+            animation:  'blink 1.05s step-end infinite',
+          }}
+          aria-hidden="true"
+        />
+      )}
+    </>
+  );
+};
+
 export const ChatBubble: React.FC<ChatBubbleProps> = ({
   message,
   isStreamingActive,
@@ -35,10 +65,15 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
 }) => {
   const isUser      = message.role === 'user';
   const displayText = isStreamingActive && streamingContent ? streamingContent : message.content;
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(displayText);
-    if (ok) onCopySuccess();
+    if (ok) {
+      onCopySuccess();
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   return (
@@ -50,7 +85,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
     >
       <div className={clsx('relative group max-w-[88%]', isUser ? 'items-end' : 'items-start')}>
 
-        {/* ── Role + copy row ── */}
+        {/* ── Role label ── */}
         <div
           className={clsx(
             'mb-1.5 flex items-center gap-2',
@@ -63,18 +98,6 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
           >
             {isUser ? 'You' : 'Sarvam'}
           </span>
-
-          {/* Copy button — assistant only, on hover */}
-          {!isUser && !isStreamingActive && displayText && (
-            <button
-              onClick={handleCopy}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              style={{ color: 'rgba(255,255,255,0.28)' }}
-              aria-label="Copy response"
-            >
-              <Copy className="w-3 h-3" />
-            </button>
-          )}
         </div>
 
         {/* ── Bubble ── */}
@@ -114,18 +137,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
                   style={{ color: 'rgba(255,255,255,0.82)' }}
                   aria-live="polite"
                 >
-                  {displayText}
-                  {/* Blinking cursor during streaming */}
-                  {isStreamingActive && (
-                    <span
-                      className="inline-block w-[2px] h-[1em] ml-[2px] align-middle rounded-sm"
-                      style={{
-                        background: 'rgba(255,255,255,0.65)',
-                        animation:  'blink 1.05s step-end infinite',
-                      }}
-                      aria-hidden="true"
-                    />
-                  )}
+                  {renderFormattedText(displayText, !!isStreamingActive)}
                 </p>
               )}
               {/* Status badges */}
@@ -151,17 +163,47 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
           )}
         </div>
 
-        {/* ── Timestamp ── */}
-        <p
-          className={clsx(
-            'mt-1 text-[10px] font-mono select-none',
-            isUser ? 'text-right' : 'text-left'
+        {/* ── Footer Row ── */}
+        <div className={clsx('mt-1.5 flex items-center gap-4', isUser ? 'justify-end' : 'justify-start')}>
+          <p
+            className="text-[10px] font-mono select-none"
+            style={{ color: 'rgba(255,255,255,0.20)' }}
+            aria-label={`Sent at ${formatTime(message.timestamp)}`}
+          >
+            {formatTime(message.timestamp)}
+          </p>
+
+          {!isUser && message.status === 'cancelled' && (
+            <span className="text-[10px] font-mono select-none" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              • Response Stopped
+            </span>
           )}
-          style={{ color: 'rgba(255,255,255,0.20)' }}
-          aria-label={`Sent at ${formatTime(message.timestamp)}`}
-        >
-          {formatTime(message.timestamp)}
-        </p>
+
+          {!isUser && !isStreamingActive && displayText && (
+            <button
+              onClick={handleCopy}
+              className={clsx(
+                "flex items-center gap-1.5 text-[10px] font-mono transition-opacity duration-200",
+                isCopied ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
+              style={{ color: isCopied ? '#4ade80' : 'rgba(255,255,255,0.3)' }}
+              aria-label="Copy response"
+            >
+              <AnimatePresence mode="wait">
+                {isCopied ? (
+                  <motion.div key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Check className="w-3 h-3" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Copy className="w-3 h-3" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <span>{isCopied ? 'Copied' : 'Copy'}</span>
+            </button>
+          )}
+        </div>
 
       </div>
     </motion.div>

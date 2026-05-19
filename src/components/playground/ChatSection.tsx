@@ -15,7 +15,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Mic, MicOff, Square } from 'lucide-react';
+import { Send, Mic, MicOff, Square, ArrowUp, ArrowDown } from 'lucide-react';
 import { ChatBubble } from './ChatBubble';
 import { MetricsPanel } from './MetricsPanel';
 import { useStreamingResponse } from '../../hooks/useStreamingResponse';
@@ -215,7 +215,39 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     ta.style.height = `${Math.min(ta.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
   }, [prompt]);
 
-  // ── Keyboard ────────────────────────────────────────────────
+  // ── Keyboard & Focus ────────────────────────────────────────
+  useEffect(() => {
+    if (isInChatMode && !isStreaming) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isInChatMode, isStreaming]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ignore if already typing in an input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      
+      // Ignore command shortcuts or non-character keys
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) {
+        return;
+      }
+      
+      // Focus textarea to capture the character
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    };
+    
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
   };
@@ -228,27 +260,8 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   const PillComposer = (
     <div className="w-full space-y-2">
 
-      {/* Row above pill: Stop (streaming) on left */}
-      <div className="flex items-center justify-between px-1 h-5">
-        <AnimatePresence>
-          {isStreaming && (
-            <motion.button
-              key="stop"
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -6 }}
-              transition={{ duration: 0.15 }}
-              onClick={cancelStream}
-              className="flex items-center gap-1.5 text-[11px] font-mono"
-              style={{ color: 'rgba(255,255,255,0.40)' }}
-              aria-label="Stop generation"
-            >
-              <Square className="w-3 h-3 fill-current" />
-              Stop
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* Row above pill: Removed in favor of dynamic send/stop button */}
+      <div className="h-2"></div>
 
       {/* The pill */}
       <div
@@ -357,22 +370,27 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           </button>
         </div>
 
-        {/* Send button */}
+        {/* Send / Stop button */}
         <button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
+          onClick={isStreaming ? cancelStream : handleSubmit}
+          disabled={!isStreaming && !canSubmit}
           className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 disabled:cursor-not-allowed"
           style={{
-            background: canSubmit ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.07)',
-            opacity:    canSubmit ? 1 : 0.35,
-            transform:  canSubmit ? 'scale(1)' : 'scale(0.88)',
+            background: isStreaming ? 'rgba(255,255,255,0.1)' : canSubmit ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.07)',
+            opacity:    isStreaming || canSubmit ? 1 : 0.35,
+            transform:  isStreaming || canSubmit ? 'scale(1)' : 'scale(0.88)',
+            border:     isStreaming ? '1px solid rgba(255,255,255,0.3)' : 'none',
           }}
-          aria-label="Send message"
+          aria-label={isStreaming ? "Stop generation" : "Send message"}
         >
-          <Send
-            className="w-3.5 h-3.5"
-            style={{ color: canSubmit ? '#000' : 'rgba(255,255,255,0.5)', marginLeft: '1px' }}
-          />
+          {isStreaming ? (
+            <Square className="w-3 h-3 fill-current text-white/80" />
+          ) : (
+            <Send
+              className="w-3.5 h-3.5"
+              style={{ color: canSubmit ? '#000' : 'rgba(255,255,255,0.5)', marginLeft: '1px' }}
+            />
+          )}
         </button>
       </div>
 
@@ -472,6 +490,37 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 {PillComposer}
               </div>
             </motion.div>
+
+            {/* Chat Navigation Buttons */}
+            <AnimatePresence>
+              {messages.length >= 4 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="fixed bottom-[120px] right-4 sm:right-8 flex flex-col gap-2 z-30"
+                >
+                  <button
+                    onClick={() => {
+                      const el = scrollContainerRef.current;
+                      if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all backdrop-blur-md"
+                    aria-label="Scroll to top"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => scrollToBottom('smooth')}
+                    className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/50 hover:bg-white/10 hover:text-white transition-all backdrop-blur-md"
+                    aria-label="Scroll to bottom"
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
           </motion.div>
         )}
       </AnimatePresence>

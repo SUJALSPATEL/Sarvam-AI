@@ -31,6 +31,13 @@ const App: React.FC = () => {
   // ── Sidebar ────────────────────────────────────────────────
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Auto-close sidebar when switching to diff viewer
+  React.useEffect(() => {
+    if (activeTab === 'diff') {
+      setSidebarOpen(false);
+    }
+  }, [activeTab]);
+
   // ── Conversations ──────────────────────────────────────────
   const { convs, activeId, active, create, save, remove, select } = useConversations();
 
@@ -112,15 +119,17 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 flex-shrink-0">
 
               {/* Sidebar toggle */}
-              <button
-                onClick={() => setSidebarOpen(o => !o)}
-                className="w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-150 hover:bg-white/6 border border-transparent hover:border-white/10"
-                style={{ color: sidebarOpen ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.40)' }}
-                aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-                aria-expanded={sidebarOpen}
-              >
-                <PanelLeft className="w-4.5 h-4.5" />
-              </button>
+              {activeTab === 'playground' && (
+                <button
+                  onClick={() => setSidebarOpen(o => !o)}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-150 hover:bg-white/6 border border-transparent hover:border-white/10"
+                  style={{ color: sidebarOpen ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.40)' }}
+                  aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+                  aria-expanded={sidebarOpen}
+                >
+                  <PanelLeft className="w-4.5 h-4.5" />
+                </button>
+              )}
 
               {/* SARVAM wordmark */}
               <span
