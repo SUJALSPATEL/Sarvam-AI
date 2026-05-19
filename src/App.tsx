@@ -131,20 +131,23 @@ const App: React.FC = () => {
                 </button>
               )}
 
-              {/* SARVAM wordmark */}
-              <span
-                style={{
-                  fontFamily: "'Outfit', sans-serif",
-                  fontSize:   '24px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.02em',
-                  color: '#ffffff',
-                  lineHeight: 1,
-                  userSelect: 'none',
-                }}
-              >
-                sarvam
-              </span>
+              {/* SARVAM logo + wordmark */}
+              <div className="flex items-center gap-2">
+                <img src="/logo.jpg" alt="Sarvam Logo" className="w-6 h-6 rounded-sm object-cover" />
+                <span
+                  style={{
+                    fontFamily: "'Outfit', sans-serif",
+                    fontSize:   '24px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: '#ffffff',
+                    lineHeight: 1,
+                    userSelect: 'none',
+                  }}
+                >
+                  sarvam
+                </span>
+              </div>
             </div>
 
             {/* ── CENTER: Tab switcher ── */}

@@ -26,6 +26,17 @@ export const TaglineHero: React.FC = () => {
       {/* Full-width — tight vertical, breathing horizontal */}
       <div className="w-full px-5 sm:px-8 pt-8 pb-7 sm:pt-10 sm:pb-8 flex flex-col items-center justify-center gap-2.5">
 
+        {/* Upper flourish design */}
+        <motion.img
+          src="/upper-design.png"
+          alt="Decorative upper flourish"
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          className="w-auto h-8 sm:h-10 mb-2"
+          style={{ opacity: 0.8 }}
+        />
+
         {/* Main greeting — Playfair Display serif, editorial style */}
         <motion.h1
           initial={{ opacity: 0, y: 10, filter: 'blur(8px)' }}
