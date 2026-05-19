@@ -71,4 +71,6 @@ export interface Conversation {
   messages: ChatMessage[];
   createdAt: number;
   updatedAt: number;
+  totalTokens?: number;
+  sessionTokens?: number;
 }

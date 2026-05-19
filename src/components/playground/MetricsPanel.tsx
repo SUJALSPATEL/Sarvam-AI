@@ -10,6 +10,7 @@ import type { StreamMetrics } from '../../types';
 interface MetricsPanelProps {
   metrics: StreamMetrics;
   cumulativeTokens: number;
+  inputTokens: number;
   isVisible: boolean;
 }
 
@@ -59,6 +60,7 @@ const MetricRow: React.FC<MetricRowProps> = ({ label, value, mono = true, highli
 export const MetricsPanel: React.FC<MetricsPanelProps> = ({
   metrics,
   cumulativeTokens,
+  inputTokens,
   isVisible,
 }) => {
   const st = statusLabel[metrics.status] ?? statusLabel.idle;
@@ -119,8 +121,8 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
                 highlight={cumulativeTokens > 0}
               />
               <MetricRow
-                label="Session tkns"
-                value={fmt(metrics.tokenCount)}
+                label="Prompt tkns"
+                value={fmt(inputTokens)}
               />
               <div
                 className="h-px w-full"

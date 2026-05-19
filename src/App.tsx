@@ -66,14 +66,14 @@ const App: React.FC = () => {
   /** Called by ChatSection when a stream completes — persists to localStorage.
    *  Creates a conversation lazily here (not in handleChatStarted) so chatKey
    *  never changes during an active streaming session. */
-  const handleConversationSave = useCallback((messages: ChatMessage[]) => {
+  const handleConversationSave = useCallback((messages: ChatMessage[], totalTokens?: number, sessionTokens?: number) => {
     if (activeId) {
-      save(activeId, messages);
+      save(activeId, messages, totalTokens, sessionTokens);
     } else {
       // First completed session with no prior activeId — create + save.
       // Both use setState updater fns, so React batches them correctly.
       const id = create();
-      save(id, messages);
+      save(id, messages, totalTokens, sessionTokens);
       // chatKey intentionally NOT updated here — ChatSection stays mounted.
     }
   }, [activeId, create, save]);
@@ -193,7 +193,7 @@ const App: React.FC = () => {
             {/* ── RIGHT: GitHub + Live ── */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <a
-                href="https://github.com"
+                href="https://github.com/SUJALSPATEL/Sarvam-AI"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-white/75 hover:bg-white/6 border border-transparent hover:border-white/10 transition-all duration-200"
@@ -276,6 +276,8 @@ const App: React.FC = () => {
             onError={handleError}
             onChatStarted={handleChatStarted}
             initialMessages={active?.messages ?? []}
+            initialTotalTokens={active?.totalTokens}
+            initialSessionTokens={active?.sessionTokens}
             onConversationSave={handleConversationSave}
             sidebarWidth={chatSidebarWidth}
           />
@@ -308,11 +310,7 @@ const App: React.FC = () => {
             SARVAM.ai — Made with Love
           </p>
           <div className="flex items-center gap-4 text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.30)' }}>
-            <span>LCS O(m×n)</span>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span>ReadableStream</span>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span>WCAG AA</span>
+            <a href="mailto:4434sujal@gmail.com" className="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
       </footer>

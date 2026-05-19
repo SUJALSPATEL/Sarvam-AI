@@ -87,7 +87,7 @@ export interface UseConversationsReturn {
   activeId: string | null;
   active: Conversation | null;
   create: () => string;
-  save: (id: string, messages: ChatMessage[]) => void;
+  save: (id: string, messages: ChatMessage[], totalTokens?: number, sessionTokens?: number) => void;
   remove: (id: string) => void;
   select: (id: string) => void;
 }
@@ -109,12 +109,14 @@ export function useConversations(): UseConversationsReturn {
     return id;
   }, []);
 
-  const save = useCallback((id: string, messages: ChatMessage[]) => {
+  const save = useCallback((id: string, messages: ChatMessage[], totalTokens?: number, sessionTokens?: number) => {
     setConvs(p => p.map(c =>
       c.id !== id ? c : {
         ...c,
         title: c.title === 'New Chat' ? autoTitle(messages) : c.title,
         messages,
+        totalTokens,
+        sessionTokens,
         updatedAt: Date.now(),
       }
     ));

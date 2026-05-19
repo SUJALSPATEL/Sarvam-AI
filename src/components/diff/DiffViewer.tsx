@@ -241,7 +241,17 @@ export const DiffViewer: React.FC = () => {
   }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleRun();
+    if (e.key === 'Enter') {
+      if (e.ctrlKey || e.metaKey || e.shiftKey) {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          setPrompt(p => p + '\n');
+        }
+      } else {
+        e.preventDefault();
+        handleRun();
+      }
+    }
   };
 
   // ── Diff analytics ───────────────────────────────────────────
@@ -332,7 +342,7 @@ export const DiffViewer: React.FC = () => {
             )}
             aria-label="Comparison prompt"
           />
-          <span className="absolute bottom-3 right-3 text-[10px] font-mono text-white/20">⌘↵</span>
+          <span className="absolute bottom-3 right-3 text-[10px] font-mono text-white/20">↵ to Send</span>
         </div>
 
         {/* Run / Stop button */}

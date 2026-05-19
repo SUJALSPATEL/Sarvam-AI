@@ -29,8 +29,10 @@ interface ChatSectionProps {
   onChatStarted?: () => void;
   /** Restore a previous conversation's messages */
   initialMessages?: ChatMessage[];
+  initialTotalTokens?: number;
+  initialSessionTokens?: number;
   /** Called with the latest messages when streaming completes */
-  onConversationSave?: (messages: ChatMessage[]) => void;
+  onConversationSave?: (messages: ChatMessage[], totalTokens?: number, sessionTokens?: number) => void;
   /** Sidebar offset in px — shift fixed containers right when sidebar open */
   sidebarWidth?: number;
 }
@@ -51,6 +53,8 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   onError,
   onChatStarted,
   initialMessages = [],
+  initialTotalTokens,
+  initialSessionTokens,
   onConversationSave,
   sidebarWidth = 0,
 }) => {
@@ -59,7 +63,6 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   const [messages, setMessages]         = useState<ChatMessage[]>(initialMessages);
   const [isInChatMode, setIsInChatMode] = useState(initialMessages.length > 0);
   const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
-  const [cumulativeTokens, setCumulativeTokens] = useState(0);
 
   const streamingMsgIdRef  = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -150,11 +153,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   }, [isListening, isVoiceActive, startListening, stopListening]);
 
   // ── Cumulative token tracking ──────────────────────────────
-  useEffect(() => {
-    if (status === 'complete' || status === 'cancelled') {
-      setCumulativeTokens(prev => prev + metrics.tokenCount);
-    }
-  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Handled by dynamic calculation in render
 
   // ── Container scroll detection ─────────────────────────────
   useEffect(() => {
@@ -203,7 +202,12 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   // ── Save conversation to localStorage when stream finishes ──
   useEffect(() => {
     if ((status === 'complete' || status === 'cancelled' || status === 'error') && messages.length > 0) {
-      onConversationSave?.(messages);
+      const currentInputTokens = (messages.slice().reverse().find(m => m.role === 'user')?.content.split(/\s+/).filter(Boolean).length || 0);
+      const totalInputTokens = messages
+        .filter(m => m.role === 'user')
+        .reduce((acc, m) => acc + m.content.split(/\s+/).filter(Boolean).length, 0);
+
+      onConversationSave?.(messages, totalInputTokens, currentInputTokens);
     }
   }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -410,11 +414,23 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   // ════════════════════════════════════════════════════════════
   // RENDER
   // ════════════════════════════════════════════════════════════
+  const currentInputTokens = prompt.trim()
+    ? prompt.trim().split(/\s+/).filter(Boolean).length
+    : (initialSessionTokens !== undefined ? initialSessionTokens : (messages.slice().reverse().find(m => m.role === 'user')?.content.split(/\s+/).filter(Boolean).length || 0));
+
+  const totalInputTokens = initialTotalTokens !== undefined && !prompt.trim() && !isStreaming && messages.length === initialMessages.length
+    ? initialTotalTokens
+    : messages
+        .filter(m => m.role === 'user')
+        .reduce((acc, m) => acc + m.content.split(/\s+/).filter(Boolean).length, 0)
+        + (prompt.trim() ? prompt.trim().split(/\s+/).filter(Boolean).length : 0);
+
   return (
     <>
       <MetricsPanel
         metrics={metrics}
-        cumulativeTokens={cumulativeTokens + metrics.tokenCount}
+        cumulativeTokens={totalInputTokens}
+        inputTokens={currentInputTokens}
         isVisible={isInChatMode}
       />
 
