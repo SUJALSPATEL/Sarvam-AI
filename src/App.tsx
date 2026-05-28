@@ -66,8 +66,8 @@ const AnimatedEarth: React.FC = () => {
         alt="Rotating Earth"
         className="rounded-full transition-opacity duration-700 object-cover"
         style={{ 
-          width: '400px', 
-          height: '400px',
+          width: 'clamp(180px, 28vw, 320px)',
+          height: 'clamp(180px, 28vw, 320px)',
         }}
       />
     </div>
@@ -149,6 +149,23 @@ const App: React.FC = () => {
   const handleDeleteConversation = useCallback((id: string) => {
     remove(id);
   }, [remove]);
+
+  // Prevent page scroll once the chat session is active; chat output scrolls inside the fixed container.
+  React.useEffect(() => {
+    const body = document.body;
+    const html = document.documentElement;
+    if (activeTab === 'playground' && chatActive) {
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    } else {
+      body.style.overflow = 'auto';
+      html.style.overflow = 'auto';
+    }
+    return () => {
+      body.style.overflow = 'auto';
+      html.style.overflow = 'auto';
+    };
+  }, [activeTab, chatActive]);
 
   // Sidebar pixel width to pass to ChatSection (desktop only)
   const chatSidebarWidth = sidebarOpen ? SIDEBAR_WIDTH : 0;
@@ -309,7 +326,7 @@ const App: React.FC = () => {
           id="panel-playground"
           role="tabpanel"
           aria-labelledby="tab-playground"
-          className={chatActive ? 'w-full h-full' : 'w-full h-full px-5 sm:px-8 py-6'}
+          className={chatActive ? 'w-full h-full' : 'w-full h-full px-4 sm:px-8 py-4 sm:py-6'}
           style={{
             gridArea: '1 / 1 / 2 / 2',
             zIndex: activeTab === 'playground' ? 10 : 1,
@@ -358,17 +375,19 @@ const App: React.FC = () => {
 
       </main>
 
-      {/* ── Footer ─────────────────────────────────────────── */}
-      <footer className="border-t border-[var(--border)] py-3.5">
-        <div className="w-full px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[12px] font-medium tracking-wide" style={{ color: 'rgba(255,255,255,0.42)' }}>
-            SARVAM.ai — Made with Love
-          </p>
-          <div className="flex items-center gap-4 text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.30)' }}>
-            <a href="mailto:4434sujal@gmail.com" className="hover:text-white transition-colors">Contact</a>
+      {/* ── Footer — hide after chat begins so the fixed composer stays at the viewport bottom */}
+      {!chatActive && (
+        <footer className="border-t border-[var(--border)] py-3.5">
+          <div className="w-full px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p className="text-[12px] font-medium tracking-wide" style={{ color: 'rgba(255,255,255,0.42)' }}>
+              SARVAM.ai — Made with Love
+            </p>
+            <div className="flex items-center gap-4 text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.30)' }}>
+              <a href="mailto:4434sujal@gmail.com" className="hover:text-white transition-colors">Contact</a>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>

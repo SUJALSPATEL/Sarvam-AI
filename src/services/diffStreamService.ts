@@ -31,7 +31,7 @@ function processSSELine(
     const json = JSON.parse(data);
     const deltaObj = json?.choices?.[0]?.delta;
     if (deltaObj) {
-      const text = deltaObj.content || deltaObj.reasoning_content;
+      const text = deltaObj.content;
       if (text) controller.enqueue(text);
     }
   } catch (err) {

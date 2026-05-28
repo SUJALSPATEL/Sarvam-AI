@@ -61,7 +61,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           top:        '64px',
           left:       0,
           bottom:     0,
-          width:      `${SIDEBAR_WIDTH}px`,
+          width:      'min(260px, calc(100vw - 28px))',
           zIndex:     50,
           transform:  open ? 'translateX(0)' : `translateX(-${SIDEBAR_WIDTH}px)`,
           transition: 'transform 0.26s cubic-bezier(0.4, 0, 0.2, 1)',

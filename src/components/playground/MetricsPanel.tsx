@@ -73,7 +73,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 18, scale: 0.97 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed right-5 top-1/2 -translate-y-1/2 z-50 pointer-events-none"
+          className="hidden sm:fixed sm:block sm:right-5 sm:top-1/2 sm:-translate-y-1/2 z-50 pointer-events-none"
           aria-label="Live streaming metrics"
           role="status"
         >

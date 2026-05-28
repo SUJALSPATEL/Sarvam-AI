@@ -464,14 +464,14 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 top:        `${HEADER_HEIGHT}px`,
                 left:       sidebarWidth,
                 right:      0,
-                bottom:     0,
+                bottom:     'calc(var(--composer-height, 140px) + env(safe-area-inset-bottom, 0px))',
                 overflowY:  'auto',
                 overflowX:  'hidden',
                 zIndex:     10,
                 transition: 'left 0.26s cubic-bezier(0.4,0,0.2,1)',
               }}
             >
-              <div className="w-full max-w-[960px] mx-auto px-5 sm:px-8 pt-6 pb-[240px] space-y-8">
+              <div className="w-full max-w-[960px] mx-auto px-4 sm:px-8 pt-6 pb-8 space-y-8">
                 {messages.map(msg => (
                   <ChatBubble
                     key={msg.id}
@@ -485,7 +485,24 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               </div>
             </div>
 
-            {/* Fixed composer — shifts right with sidebar */}
+            {/* Mobile-only metrics bar — fixed to viewport, above composer */}
+            <div
+              className="sm:hidden fixed left-0 right-0 z-25"
+              style={{
+                bottom: 'calc(var(--composer-height, 140px) - 4px)',
+              }}
+            >
+              <div className="bg-black/95 backdrop-blur-xl border-t border-white/10 px-4 py-3">
+                <div className="mx-auto max-w-[960px] flex items-center justify-between gap-3 text-[11px] font-mono text-white/80">
+                  <span>Total {totalInputTokens.toLocaleString()}</span>
+                  <span>Prompt {currentInputTokens.toLocaleString()}</span>
+                  <span>{metrics.status === 'streaming' ? `${metrics.tokensPerSecond.toLocaleString()}/s` : '—'}</span>
+                  <span>{metrics.elapsedTime > 0 ? `${metrics.elapsedTime < 1000 ? `${metrics.elapsedTime}ms` : `${(metrics.elapsedTime / 1000).toFixed(1)}s`}` : '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fixed composer — shifts right with sidebar, sits at viewport bottom */}
             <motion.div
               initial={{ y: 28, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -496,13 +513,14 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 left:       sidebarWidth,
                 right:      0,
                 zIndex:     20,
-                padding:    '24px 0 20px',
-                background: 'linear-gradient(to top, rgba(0,0,0,1) 60%, rgba(0,0,0,0))',
+                paddingTop: '12px',
+                paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+                background: 'linear-gradient(to top, rgba(0,0,0,1) 75%, rgba(0,0,0,0))',
                 transition: 'left 0.26s cubic-bezier(0.4,0,0.2,1)',
                 pointerEvents: 'none',
               }}
             >
-              <div className="max-w-[960px] mx-auto px-5 sm:px-8" style={{ pointerEvents: 'auto' }}>
+              <div className="max-w-[960px] mx-auto px-4 sm:px-8" style={{ pointerEvents: 'auto' }}>
                 {PillComposer}
               </div>
             </motion.div>
